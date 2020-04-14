@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
 )
@@ -19,10 +20,10 @@ type Bank struct {
 }
 
 type OutAbout struct {
-	Key              string
-	Nonce            string
-	RemainingPackets int64
-	FileName         string
+	Key           string
+	Nonce         string
+	TrailingBytes int
+	FileName      string
 }
 
 func errorCheck(x error) {
@@ -59,16 +60,28 @@ func loadConfig(file string) Bank {
 	return rBank
 }
 
-func genHex() string {
-	oByte := make([]byte, 32)
+//load the key file into the bank
+func loadKey(file string) OutAbout {
+	var rBank OutAbout
+	tBank, _ := loadFile(file)
+
+	json.Unmarshal(tBank, &rBank)
+
+	return rBank
+}
+
+//generate hex string for aes256
+func genHex(length int) string {
+	oByte := make([]byte, length)
 	_, err := rand.Read(oByte)
 	errorCheck(err)
 
 	return hex.EncodeToString(oByte)
 }
 
-func genEncodedPackets(iFile string, pSize int) [][]byte {
-	keyStr := genHex()
+//generate encoded packets, save a json and info
+func genEncodedPackets(iFile string, pSize int) (string, [][]byte) {
+	keyStr := genHex(32)
 	key, _ := hex.DecodeString(keyStr)
 
 	fileBytes, iSize := loadFile(iFile)
@@ -95,8 +108,54 @@ func genEncodedPackets(iFile string, pSize int) [][]byte {
 		}
 	}
 
-	fmt.Printf("%x\n", eDat)
-	return eDat
+	nameHex := genHex(8)
+
+	outTracker := OutAbout{
+		Key:           keyStr,
+		Nonce:         hex.EncodeToString(nonce),
+		TrailingBytes: remainingPak,
+		FileName:      iFile,
+	}
+
+	var jsonOut []byte
+	jsonOut, err = json.Marshal(outTracker)
+	errorCheck(err)
+
+	err = ioutil.WriteFile(nameHex+".key", jsonOut, 0644)
+	errorCheck(err)
+
+	fmt.Printf("%x\n", eDat[0])
+	return nameHex, eDat
+}
+
+//take encoded packets and a keyfile then save a file
+func genDecodedFile(keyName string, pak [][]byte) {
+	keyRing := loadKey(keyName + ".key")
+	netInf := loadConfig("netConf.json")
+	fmt.Println(len(pak))
+	outFile := make([]byte, 0)
+	rawPak := make([]byte, netInf.PakLen)
+
+	key, _ := hex.DecodeString(keyRing.Key)
+	nonce, _ := hex.DecodeString(keyRing.Nonce)
+
+	block, err := aes.NewCipher(key)
+	errorCheck(err)
+	gcmCore, err := cipher.NewGCM(block)
+	errorCheck(err)
+
+	for i := 0; i < len(pak); i++ {
+		rawPak, _ = gcmCore.Open(nil, nonce, pak[i], nil)
+
+		if i == len(pak)-1 {
+			rawPak = append([]byte(nil), rawPak[:keyRing.TrailingBytes]...)
+		}
+
+		outFile = append(outFile, rawPak...)
+	}
+
+	ioutil.WriteFile("PROCESSED"+keyRing.FileName, outFile, 0644)
+	return
 }
 
 func main() {
@@ -104,5 +163,5 @@ func main() {
 	byteFile, _ := loadFile("test.txt")
 	fmt.Println(bank.PakLen)
 	fmt.Println(byteFile)
-	genEncodedPackets("test.txt", bank.PakLen)
+	genDecodedFile(genEncodedPackets("test.txt", bank.PakLen))
 }
