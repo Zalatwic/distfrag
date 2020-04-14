@@ -121,7 +121,7 @@ func genEncodedPackets(iFile string, pSize int) (string, [][]byte) {
 	jsonOut, err = json.Marshal(outTracker)
 	errorCheck(err)
 
-	err = ioutil.WriteFile(nameHex+".key", jsonOut, 0644)
+	err = ioutil.WriteFile("KEYS/"+nameHex+".key", jsonOut, 0644)
 	errorCheck(err)
 
 	fmt.Printf("%x\n", eDat[0])
@@ -130,7 +130,7 @@ func genEncodedPackets(iFile string, pSize int) (string, [][]byte) {
 
 //take encoded packets and a keyfile then save a file
 func genDecodedFile(keyName string, pak [][]byte) {
-	keyRing := loadKey(keyName + ".key")
+	keyRing := loadKey("KEYS/" + keyName + ".key")
 	netInf := loadConfig("netConf.json")
 	fmt.Println(len(pak))
 	outFile := make([]byte, 0)
@@ -154,14 +154,14 @@ func genDecodedFile(keyName string, pak [][]byte) {
 		outFile = append(outFile, rawPak...)
 	}
 
-	ioutil.WriteFile("PROCESSED"+keyRing.FileName, outFile, 0644)
+	ioutil.WriteFile("PROCESSED/"+keyRing.FileName, outFile, 0644)
 	return
 }
 
 func main() {
 	bank := loadConfig("netConf.json")
-	byteFile, _ := loadFile("test.txt")
+	byteFile, _ := loadFile("test.png")
 	fmt.Println(bank.PakLen)
 	fmt.Println(byteFile)
-	genDecodedFile(genEncodedPackets("test.txt", bank.PakLen))
+	genDecodedFile(genEncodedPackets("test.png", bank.PakLen))
 }

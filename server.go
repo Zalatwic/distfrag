@@ -2,13 +2,10 @@ package main
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"net"
 )
-
-type P struct {
-	PType byte
-}
 
 //spawned function to take care of incoming packets
 func rpak(con net.Conn) {
@@ -19,7 +16,7 @@ func rpak(con net.Conn) {
 		var packetIn P
 		err := gobDecode.Decode(&packetIn)
 		fmt.Println(packetIn)
-		packetType := 4
+		packetType := packetIn.PType
 
 		if err != nil {
 			fmt.Println(err)
@@ -32,6 +29,10 @@ func rpak(con net.Conn) {
 		//DATa packet
 		if packetType == 0 {
 			fmt.Println("recieved data packet \n")
+
+			var DPAK DAT
+			json.Unmarshal(packetIn.Content, &DPAK)
+			fmt.Print(DPAK)
 			break
 		}
 
@@ -81,7 +82,7 @@ func rpak(con net.Conn) {
 	con.Close()
 }
 
-func main() {
+func acceptConnect() {
 	l, err := net.Listen("tcp4", ":5831")
 
 	if err != nil {
@@ -101,5 +102,12 @@ func main() {
 
 		go rpak(con)
 
+	}
+
+}
+
+func main() {
+	go acceptConnect()
+	for {
 	}
 }
