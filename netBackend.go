@@ -82,6 +82,16 @@ func rpak(con net.Conn) {
 	con.Close()
 }
 
+func sendPak(adrs string, pakCon []byte, pType int) {
+	con, err := net.Dial("tcp", adrs+":5831")
+	errorCheck(err)
+
+	packet := P{pType, pakCon}
+	pakEncode := gob.NewEcoder(con)
+	err = pakEncode.Encode(packet)
+	errorCheck(err)
+}
+
 func acceptConnect() {
 	l, err := net.Listen("tcp4", ":5831")
 
