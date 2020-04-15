@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
 )
 
 //spawned function to take care of incoming packets
@@ -82,12 +83,12 @@ func rpak(con net.Conn) {
 	con.Close()
 }
 
-func sendPak(adrs string, pakCon []byte, pType int) {
+func sendPak(adrs string, pakCon []byte, pType byte) {
 	con, err := net.Dial("tcp", adrs+":5831")
 	errorCheck(err)
 
 	packet := P{pType, pakCon}
-	pakEncode := gob.NewEcoder(con)
+	pakEncode := gob.NewEncoder(con)
 	err = pakEncode.Encode(packet)
 	errorCheck(err)
 }
@@ -118,6 +119,16 @@ func acceptConnect() {
 
 func main() {
 	go acceptConnect()
-	for {
+
+	if len(os.Args) > 1 {
+		var infContainer []byte
+		originInfPacket := INF{
+			IType: 0,
+			PNum:  0,
+			Data:  []byte(os.Args[1]),
+		}
+
+		infContainer, _ = json.Marshal(originInfPacket)
+		sendPak(os.Args[2], infContainer, 4)
 	}
 }

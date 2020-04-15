@@ -158,7 +158,7 @@ func genDecodedFile(keyName string, pak [][]byte) {
 	return
 }
 
-func main() {
+func mainTest() {
 	bank := loadConfig("netConf.json")
 	byteFile, _ := loadFile("test.png")
 	fmt.Println(bank.PakLen)

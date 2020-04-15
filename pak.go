@@ -52,9 +52,7 @@ type AEC struct {
 
 type INF struct {
 	IType byte
-	Num   int
 	PNum  int
-	CHIP  []byte
 	Data  []byte
 }
 
