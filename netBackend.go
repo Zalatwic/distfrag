@@ -131,4 +131,7 @@ func main() {
 		infContainer, _ = json.Marshal(originInfPacket)
 		sendPak(os.Args[2], infContainer, 4)
 	}
+
+	for {
+	}
 }
