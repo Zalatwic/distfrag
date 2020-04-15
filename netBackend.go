@@ -8,6 +8,20 @@ import (
 	"os"
 )
 
+type CluHead struct {
+	IP  string
+	Num int
+}
+
+//CH -> is cluster head
+var CH = false
+var subComp []string
+var coHeads []CluHead
+var groupCounts = []int{0, 0, 0}
+var peerCounts = []int{0, 0, 0, 0, 0, 0}
+
+var numClusters = 3
+
 //spawned function to take care of incoming packets
 func rpak(con net.Conn) {
 	fmt.Printf("connected to %s\n", con.RemoteAddr().String())
@@ -31,9 +45,9 @@ func rpak(con net.Conn) {
 		if packetType == 0 {
 			fmt.Println("recieved data packet \n")
 
-			var DPAK DAT
-			json.Unmarshal(packetIn.Content, &DPAK)
-			fmt.Print(DPAK)
+			var PAK DAT
+			json.Unmarshal(packetIn.Content, &PAK)
+			fmt.Print(PAK)
 			break
 		}
 
@@ -57,7 +71,40 @@ func rpak(con net.Conn) {
 
 		//INFo packet
 		if packetType == 4 {
+			var PAK INF
+			json.Unmarshal(packetIn.Content, &PAK)
+			fmt.Print(PAK)
+
 			fmt.Println("recieved information \n")
+
+			//add connected computer to peer list
+			if PAK.IType == 0 {
+				if CH {
+					if len(coHeads) < (numClusters * 2) {
+						groupAssignment := 0
+						temp := 3
+
+						for i := 0; i < numClusters; i++ {
+							if temp > groupCounts[i] {
+								groupAssignment = i
+								temp = groupCounts[i]
+							}
+						}
+
+						//add as cohead, send out elevation message, inform coheads of new addition
+						coHeads = append(coHeads, string(PAK.Data))
+						go anointHead(string(PAK.Data))
+						go informOthersAnointed(string(PAK.Data))
+
+					} else {
+						//assign to cohead with lowest number of connected peers
+
+					}
+				} else {
+					//pass information to cluster head for assignment
+
+				}
+			}
 			break
 		}
 
@@ -91,6 +138,14 @@ func sendPak(adrs string, pakCon []byte, pType byte) {
 	pakEncode := gob.NewEncoder(con)
 	err = pakEncode.Encode(packet)
 	errorCheck(err)
+}
+
+func anointHead(NHA string) {
+
+}
+
+func informOthersAnointed(NHA string) {
+
 }
 
 func acceptConnect() {
@@ -130,6 +185,8 @@ func main() {
 
 		infContainer, _ = json.Marshal(originInfPacket)
 		sendPak(os.Args[2], infContainer, 4)
+	} else {
+		CH = true
 	}
 
 	for {

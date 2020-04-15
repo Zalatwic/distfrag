@@ -52,7 +52,6 @@ type AEC struct {
 
 type INF struct {
 	IType byte
-	PNum  int
 	Data  []byte
 }
 
