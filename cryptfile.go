@@ -1,5 +1,9 @@
 package main
 
+//todo by 6pm
+//split file into chunks and send to cluster head
+//have cluster head distribute packets
+
 import (
 	"bufio"
 	"fmt"
@@ -12,7 +16,7 @@ func errorCheck(x error) {
 	}
 }
 
-//this loads a file from namestring and returns it as a byte slice
+//this loads a file from name and returns it as a byte slice
 func loadFile(fName string) []byte {
 	readDat, err := os.Open(fName)
 	errorCheck(err)
@@ -31,6 +35,6 @@ func loadFile(fName string) []byte {
 }
 
 func main() {
-	byteFile := loadFile("test.txt")
-
+	byteFile := loadFile("dcgan.gif")
+	fmt.Println(byteFile)
 }
