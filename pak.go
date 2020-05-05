@@ -1,10 +1,5 @@
 package main
 
-import (
-	"encoding/gob"
-	"fmt"
-)
-
 // IType	Information packet type
 // PType	Packet type
 // PSize	Packet size
@@ -19,17 +14,20 @@ import (
 // NIP		New IP for so-cluster head
 // Lock		AORN, no idea, but i might use it in the future
 
+type P struct {
+	PType   byte
+	Content []byte
+}
+
 type DAT struct {
-	PType byte
 	PSize int
 	PNum  int
-	PHash []byte
-	CHash []byte
-	Data  []byte
+	//	PHash []byte
+	//	CHash []byte
+	//	Data  []byte
 }
 
 type RSD struct {
-	PType byte
 	Num   int
 	Group int
 	CHash []byte
@@ -39,42 +37,29 @@ type RSD struct {
 }
 
 type AEM struct {
-	PType byte
-	Num   int
-	CHIP  []byte
-	DRIP  []byte
-	Lock  []byte
+	Num  int
+	CHIP []byte
+	DRIP []byte
+	Lock []byte
 }
 
 type AEC struct {
-	PType byte
-	Num   int
-	CHIP  []byte
-	NIP   []byte
-	Lock  []byte
+	Num  int
+	CHIP []byte
+	NIP  []byte
+	Lock []byte
 }
 
 type INF struct {
-	PType byte
 	IType byte
-	Num   int
-	PNum  int
-	CHIP  []byte
 	Data  []byte
 }
 
 type INQ struct {
-	PType byte
 }
 
 type MPQ struct {
-	PType byte
 }
 
 type MPR struct {
-	PType byte
-}
-
-func main() {
-	fmt.Println("vim-go")
 }
